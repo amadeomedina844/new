@@ -207,3 +207,48 @@ def data_summary():
 
     return result
 
+@app.get("/data-audit")
+def data_audit():
+    from database import get_db
+    from psycopg.rows import dict_row
+
+    with get_db() as conn:
+        with conn.cursor(row_factory=dict_row) as cur:
+            cur.execute("""
+                SELECT
+                    COUNT(*) AS total,
+                    COUNT(*) FILTER (
+                        WHERE publication_date IS NULL
+                    ) AS missing_dates,
+                    COUNT(*) FILTER (
+                        WHERE publication_date >=
+                        TIMESTAMPTZ '2026-10-01'
+                    ) AS october_2026,
+                    COUNT(*) FILTER (
+                        WHERE publication_date >=
+                        TIMESTAMPTZ '2026-01-01'
+                    ) AS year_2026,
+                    MAX(publication_date) AS latest_stored_date
+                FROM secop_processes
+            """)
+            stats = cur.fetchone()
+
+            cur.execute("""
+                SELECT
+                    process_id,
+                    publication_date,
+                    raw_data->>'fecha_de_publicacion_del'
+                        AS original_date,
+                    raw_data->>'fecha_de_publicacion_fase_3'
+                        AS phase_3_date
+                FROM secop_processes
+                ORDER BY collected_at DESC, process_id
+                LIMIT 5
+            """)
+            samples = cur.fetchall()
+
+    return {
+        "statistics": stats,
+        "sample_records": samples
+    }
+

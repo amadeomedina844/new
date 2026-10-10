@@ -102,3 +102,20 @@ def database_status():
         )
     }
 
+from collectors.secop import fetch_secop
+
+@app.get("/secop-test", include_in_schema=False)
+def secop_test():
+    try:
+        records = fetch_secop(limit=5)
+        return {
+            "source": "SECOP II",
+            "count": len(records),
+            "records": records
+        }
+    except Exception:
+        raise HTTPException(
+            status_code=502,
+            detail="No se pudo consultar SECOP II"
+        )
+

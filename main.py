@@ -22,3 +22,37 @@ def health():
         "status": "healthy",
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
+
+import os
+import psycopg
+from fastapi import HTTPException
+
+@app.get("/db-health")
+def db_health():
+    database_url = os.getenv("DATABASE_URL")
+
+    if not database_url:
+        raise HTTPException(
+            status_code=503,
+            detail="DATABASE_URL no configurada"
+        )
+
+    try:
+        with psycopg.connect(
+            database_url,
+            connect_timeout=5
+        ) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1")
+                result = cur.fetchone()
+
+        return {
+            "database": "connected",
+            "test": result[0]
+        }
+
+    except psycopg.Error:
+        raise HTTPException(
+            status_code=503,
+            detail="No se pudo conectar a PostgreSQL"
+        )

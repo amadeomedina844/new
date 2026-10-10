@@ -16,11 +16,15 @@ def fetch_secop(limit=100, offset=0):
     limit = max(1, min(int(limit), 1000))
     offset = max(0, int(offset))
 
-    params = {
+      params = {
+        "$select": "*",
+        "$where": "fecha_de_publicacion_del IS NOT NULL",
         "$limit": limit,
         "$offset": offset,
-        "$order": "fecha_de_publicacion_del DESC, id_del_proceso ASC"
-    }
+        "$order": (
+            "fecha_de_publicacion_del DESC, "
+            "id_del_proceso ASC"
+        )
 
     with httpx.Client(timeout=60) as client:
         response = client.get(

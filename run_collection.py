@@ -1,5 +1,5 @@
 
-
+from run_classification import classify_processes
 from database import initialize_database
 from secop_storage import collect_and_save
 
@@ -38,6 +38,16 @@ def main():
             "saved_or_updated": total_saved,
             "skipped": total_skipped
         },
+        flush=True
+    )
+
+    print("Starting automatic classification...", flush=True)
+
+    classification = classify_processes()
+
+    print(
+        "CLASSIFICATION_RESULT:",
+        classification,
         flush=True
     )
 

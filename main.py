@@ -83,3 +83,22 @@ async def lifespan(app: FastAPI):
 
 app.router.lifespan_context = lifespan
 
+@app.get("/database-status")
+def database_status():
+    database_url = os.environ["DATABASE_URL"]
+
+    with psycopg.connect(database_url) as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT to_regclass('public.opportunities')"
+            )
+            result = cur.fetchone()
+
+    return {
+        "database": "connected",
+        "opportunities_table": (
+            "created" if result[0] is not None
+            else "missing"
+        )
+    }
+

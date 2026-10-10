@@ -28,3 +28,18 @@ def initialize_database():
                     created_at TIMESTAMPTZ DEFAULT NOW()
                 )
             """)
+
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS secop_processes (
+                    process_id TEXT PRIMARY KEY,
+                    entity_name TEXT,
+                    process_name TEXT,
+                    description TEXT,
+                    sector TEXT,
+                    estimated_value NUMERIC,
+                    publication_date TIMESTAMPTZ,
+                    source_url TEXT,
+                    raw_data JSONB NOT NULL,
+                    collected_at TIMESTAMPTZ DEFAULT NOW()
+                )
+            """)

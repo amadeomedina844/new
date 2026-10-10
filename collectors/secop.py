@@ -3,8 +3,7 @@ import os
 import httpx
 
 SECOP_DATASET_ID = os.getenv(
-    "SECOP_DATASET_ID",
-    "p6dx-8zbt"
+    "SECOP_DATASET_ID", "p6dx-8zbt"
 )
 
 SECOP_URL = (
@@ -13,11 +12,21 @@ SECOP_URL = (
 )
 
 
-def fetch_secop(limit=10):
-    with httpx.Client(timeout=30) as client:
+def fetch_secop(limit=100, offset=0):
+    limit = max(1, min(int(limit), 1000))
+    offset = max(0, int(offset))
+
+    params = {
+        "$limit": limit,
+        "$offset": offset,
+        "$order": "fecha_de_publicacion_del DESC, id_del_proceso ASC"
+    }
+
+    with httpx.Client(timeout=60) as client:
         response = client.get(
             SECOP_URL,
-            params={"$limit": min(limit, 100)}
+            params=params
         )
         response.raise_for_status()
         return response.json()
+

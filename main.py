@@ -59,7 +59,7 @@ def db_health():
 
 from database import initialize_database
 
-@app.post("/setup-database", include_in_schema=False)
+
 def setup_database():
     try:
         initialize_database()
@@ -72,3 +72,14 @@ def setup_database():
             status_code=500,
             detail="Error al inicializar la base de datos"
         )
+        
+from contextlib import asynccontextmanager
+from database import initialize_database
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    initialize_database()
+    yield
+
+app.router.lifespan_context = lifespan
+

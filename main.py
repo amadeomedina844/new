@@ -252,3 +252,33 @@ def data_audit():
         "sample_records": samples
     }
 
+@app.get("/secop-fields")
+def secop_fields():
+    from collectors.secop import fetch_secop
+
+    records = fetch_secop(limit=5)
+
+    if not records:
+        return {"status": "empty"}
+
+    results = []
+
+    for record in records:
+        date_fields = {
+            key: value
+            for key, value in record.items()
+            if any(term in key.lower()
+                   for term in ["fecha", "publicacion", "date"])
+        }
+
+        results.append({
+            "process_id": record.get("id_del_proceso"),
+            "date_fields": date_fields
+        })
+
+    return {
+        "total": len(records),
+        "available_fields": list(records[0].keys()),
+        "samples": results
+    }
+

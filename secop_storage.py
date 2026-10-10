@@ -17,8 +17,8 @@ def parse_date(value):
         return None
 
 
-def collect_and_save(limit=100):
-    records = fetch_secop(limit=limit)
+def collect_and_save(limit=100, offset=0):
+    records = fetch_secop(limit=limit, offset=offset)
     saved = 0
     skipped = 0
 

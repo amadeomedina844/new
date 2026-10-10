@@ -119,3 +119,35 @@ def secop_test():
             detail="No se pudo consultar SECOP II"
         )
 
+@app.get("/secop-processes")
+def get_secop_processes(limit: int = 20):
+    from fastapi import Query
+    from database import get_db
+    from psycopg.rows import dict_row
+
+    limit = max(1, min(limit, 100))
+
+    with get_db() as conn:
+        with conn.cursor(row_factory=dict_row) as cur:
+            cur.execute("""
+                SELECT
+                    process_id,
+                    entity_name,
+                    process_name,
+                    sector,
+                    estimated_value,
+                    publication_date,
+                    source_url
+                FROM secop_processes
+                ORDER BY collected_at DESC, process_id
+                LIMIT %s
+            """, (limit,))
+
+            records = cur.fetchall()
+
+    return {
+        "source": "SECOP II",
+        "count": len(records),
+        "processes": records
+    }
+

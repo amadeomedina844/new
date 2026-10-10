@@ -151,3 +151,33 @@ def get_secop_processes(limit: int = 20):
         "processes": records
     }
 
+@app.get("/sector-analysis")
+def sector_analysis():
+    from database import get_db
+    from psycopg.rows import dict_row
+
+    with get_db() as conn:
+        with conn.cursor(row_factory=dict_row) as cur:
+            cur.execute("""
+                SELECT
+                    COALESCE(sector, 'Sin clasificar') AS sector,
+                    COUNT(*) AS total_processes,
+                    SUM(estimated_value) AS total_value,
+                    ROUND(AVG(estimated_value), 2) AS average_value
+                FROM secop_processes
+                GROUP BY COALESCE(sector, 'Sin clasificar')
+                ORDER BY total_processes DESC
+            """)
+
+            results = cur.fetchall()
+
+    return {
+        "source": "SECOP II",
+        "analysis": "Demanda por sector",
+        "sectors": results,
+        "note": (
+            "Muestra exploratoria, no representativa "
+            "del mercado colombiano."
+        )
+    }
+

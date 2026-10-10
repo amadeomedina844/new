@@ -56,3 +56,19 @@ def db_health():
             status_code=503,
             detail="No se pudo conectar a PostgreSQL"
         )
+
+from database import initialize_database
+
+@app.post("/setup-database", include_in_schema=False)
+def setup_database():
+    try:
+        initialize_database()
+        return {
+            "status": "success",
+            "message": "Tabla de oportunidades creada correctamente"
+        }
+    except Exception:
+        raise HTTPException(
+            status_code=500,
+            detail="Error al inicializar la base de datos"
+        )

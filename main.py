@@ -181,3 +181,29 @@ def sector_analysis():
         )
     }
 
+@app.get("/data-summary")
+def data_summary():
+    from database import get_db
+    from psycopg.rows import dict_row
+
+    with get_db() as conn:
+        with conn.cursor(row_factory=dict_row) as cur:
+            cur.execute("""
+                SELECT
+                    COUNT(*) AS total_unique_processes,
+                    COUNT(*) FILTER (
+                        WHERE sector IS NOT NULL
+                        AND sector <> 'Sin clasificar'
+                    ) AS classified,
+                    COUNT(*) FILTER (
+                        WHERE sector IS NULL
+                        OR sector = 'Sin clasificar'
+                    ) AS unclassified,
+                    MIN(publication_date) AS earliest_date,
+                    MAX(publication_date) AS latest_date
+                FROM secop_processes
+            """)
+            result = cur.fetchone()
+
+    return result
+
